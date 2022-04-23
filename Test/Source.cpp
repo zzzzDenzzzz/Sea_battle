@@ -11,7 +11,8 @@ const string DECK = "D";
 const string HIT = "X";
 const string MISS = "@";
 const string HEADER = " ABCDEFGHIJ";
-const string SINGLE_FIELD = { ":" };
+const string SINGLE_FIELD = ":";
+const string INPUT_LINE = ">>>";
 int ships_id = 1;
 
 enum Button
@@ -22,6 +23,26 @@ enum Button
 	DOWN = 115,
 	ROTATION = 114,
 	ENTER = 13
+};
+
+enum ConsoleColor
+{
+	BLACK = 0, 
+	Blue,
+	GREEN = 2, 
+	CYAN = 3,
+	RED = 4, 
+	Magenta, 
+	Brown, 
+	LightGray,
+	DARK_GRAY = 8, 
+	LightBlue, 
+	LightGreen, 
+	LightCyan, 
+	LightRed,
+	LightMagenta, 
+	YELLOW = 14,
+	WHITE = 15
 };
 
 void errorInput()
@@ -329,38 +350,46 @@ bool setShip(int map[N][N], int x, int y, int dir, int size_ship)
 
 			shipXY(x, y, dir);
 		}
-		//if (ships_id < N)
-		//{
-		//	_ships[ships_id] = size_ship;
-		//}
-		//_ships[ships_id] = size_ship;
 		ships_id++;
 	}
 	return setting_is_possible;
 }
 
+void setColor(unsigned foreground, unsigned background)
+{
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, (WORD)((background << 4) | foreground));
+}
+
 void mapShow(int map[N][N], int x_pos, int y_pos, bool flag = false)
 {
-	::cout << HEADER <<  endl;
+	setColor(WHITE, BLACK);
+	::cout << HEADER << endl;
+	setColor(DARK_GRAY, BLACK);
 	for (int i = 0; i < N; i++)
 	{
 		if (flag)
 		{
 			cursorMove(x_pos, ++y_pos);
 		}
+		setColor(WHITE, BLACK);
 		::cout << i;
+		setColor(DARK_GRAY, BLACK);
 		for (int j = 0; j < N; j++)
 		{
 			if (flag)
 			{
 				if (map[j][i] == -1)
 				{
+					setColor(WHITE, BLACK);
 					::cout << MISS;
+					setColor(DARK_GRAY, BLACK);
 				}
 				else if (map[j][i] == -2)
 				{
+					setColor(RED, BLACK);
 					::cout << HIT;
-					//::cout << map[j][i];
+					setColor(DARK_GRAY, BLACK);
 				}
 				//else if (map[j][i] >= 1)
 				//{
@@ -379,21 +408,29 @@ void mapShow(int map[N][N], int x_pos, int y_pos, bool flag = false)
 				}
 				else if (map[j][i] >= 1)
 				{
+					setColor(GREEN, BLACK);
 					::cout << DECK;
+					setColor(DARK_GRAY, BLACK);
 				}
 				else if (map[j][i] == -1)
 				{
+					setColor(WHITE, BLACK);
 					::cout << MISS;
+					setColor(DARK_GRAY, BLACK);
 				}
 				else if (map[j][i] == -2)
 				{
+					setColor(RED, BLACK);
 					::cout << HIT;
+					setColor(DARK_GRAY, BLACK);
 				}
 			}
 		}
 		::cout << endl;
 	}
-	::cout << endl;
+	setColor(YELLOW, BLACK);
+	::cout << endl << INPUT_LINE;
+	setColor(CYAN, BLACK);
 }
 
 void setManualShips(int map[N][N], int dir, int x, int y, int size_ship, int ships[N], int y_pos)
@@ -507,6 +544,134 @@ void setRandomShips(int map[N][N], int size_ship, int ship_id)
 	}
 }
 
+void setMissField(int map[N][N], int &length_ship, int &x, int &y, bool direction_ship)
+{
+	if (direction_ship)
+	{
+		for (int i = -1; i <= length_ship; i++)
+		{
+			for (int j = -1; j < 2; j++)
+			{
+				if (y + i < 0 || x + j < 0 || y + i >= N || x + j >= N)
+				{
+					continue;
+				}
+				else if (y + i != y || x + j != x)
+				{
+					if (map[y + i][x + j] != -2)
+					{
+						map[y + i][x + j] = -1;
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		for (int i = -1; i < 2; i++)
+		{
+			for (int j = -1; j <= length_ship; j++)
+			{
+				if (y + i < 0 || x + j < 0 || y + i >= N || x + j >= N)
+				{
+					continue;
+				}
+				else if (y + i != y || x + j != x)
+				{
+					if (map[y + i][x + j] != -2)
+					{
+						map[y + i][x + j] = -1;
+					}
+				}
+			}
+		}
+	}
+}
+
+bool directionShip(int map[N][N], int &x, int &y)
+{
+	int temp_x = x;
+	int temp_y = y;
+	int count = 0;
+	bool direction = true;
+
+	do
+	{
+		temp_x--;
+		if (map[y][temp_x] == -2 && temp_x >= 0)
+		{
+			count++;
+		}
+	} while (map[y][temp_x] == -2 && temp_x >= 0);
+
+	if (count > 0)
+	{
+		x = ++temp_x;
+		direction = false;
+	}
+	else
+	{
+		temp_x = x;
+		if (map[y][++temp_x] == -2 && temp_x < N)
+		{
+			direction = false;
+		}
+	}
+
+	if (direction)
+	{
+		count = 0;
+		do
+		{
+			temp_y--;
+			if (map[temp_y][x] == -2 && temp_y >= 0)
+			{
+				count++;
+			}
+		} while (map[temp_y][x] == -2 && temp_y >= 0);
+
+		if (count > 0)
+		{
+			y = ++temp_y;
+		}
+	}
+
+	return direction;
+}
+
+void fillingFieldsAroundShip(int map[N][N], int &id, int &x, int &y)
+{
+	int length_ship = 1;
+	bool direction_ship = true; // горизонтальное расположение корабля
+	switch (id)
+	{
+	case 1:
+		length_ship = 4;
+		direction_ship = directionShip(map, x, y);
+		setMissField(map, length_ship, x, y, direction_ship);
+		break;
+	case 2:
+	case 3:
+		length_ship = 3;
+		direction_ship = directionShip(map, x, y);;
+		setMissField(map, length_ship, x, y, direction_ship);
+		break;
+	case 4:
+	case 5:
+	case 6:
+		length_ship = 2;
+		direction_ship = directionShip(map, x, y);;
+		setMissField(map, length_ship, x, y, direction_ship);
+		break;
+	case 7:
+	case 8:
+	case 9:
+	case 10:
+		setMissField(map, length_ship, x, y, direction_ship);
+		break;
+	}
+}
+
 void resultShooting(int map[N][N], int result_shooting[N], int x, int y, bool &hit)
 {
 	if (map[y][x] == 0)
@@ -518,6 +683,7 @@ void resultShooting(int map[N][N], int result_shooting[N], int x, int y, bool &h
 	}
 	else if (map[y][x] >= 1)
 	{
+		int id = map[y][x];
 		int result = map[y][x] - 1;
 		map[y][x] = -2; // попадание
 		hit = true;
@@ -527,6 +693,7 @@ void resultShooting(int map[N][N], int result_shooting[N], int x, int y, bool &h
 		{
 			Sleep(500);
 			::cout << "Убит";
+			fillingFieldsAroundShip(map, id, x, y);
 		}
 		else
 		{
@@ -626,7 +793,7 @@ void strategyBot_2(int map[N][N], int &x, int &y)
 	}
 }
 
-void shooting(int map[N][N], int result_shooting[N], string str, bool &hit, bool &computer_game_mode,  bool shooting_bot = true)
+void shooting(int map[N][N], int result_shooting[N], string str, bool &hit, bool &computer_game_mode, bool shooting_bot = true)
 {
 	if (shooting_bot)
 	{
@@ -639,7 +806,7 @@ void shooting(int map[N][N], int result_shooting[N], string str, bool &hit, bool
 				x = rand() % N;
 				y = rand() % N;
 			} while (map[y][x] < 0);
-
+			::cout << static_cast<char>(y + 97) << x << endl;
 			resultShooting(map, result_shooting, x, y, hit);
 			return;
 		}
@@ -651,6 +818,7 @@ void shooting(int map[N][N], int result_shooting[N], string str, bool &hit, bool
 				x = 0;
 				y = 0;
 				strategyBot_1(map, x, y);
+				::cout << static_cast<char>(y + 97) << x << endl;
 				resultShooting(map, result_shooting, x, y, hit);
 				return;
 			}
@@ -659,6 +827,7 @@ void shooting(int map[N][N], int result_shooting[N], string str, bool &hit, bool
 				x = 0;
 				y = N / 2 - 1;
 				strategyBot_2(map, x, y);
+				::cout << static_cast<char>(y + 97) << x << endl;
 				resultShooting(map, result_shooting, x, y, hit);
 				return;
 			}
@@ -794,7 +963,6 @@ int main()
 				mapShow(map_1, x_pos, y_pos);
 				cursorMove(x_pos, y_pos);
 				mapShow(map_2, x_pos, y_pos, true);
-				::cout << ">>>";
 				getline(cin, coordinate_entry_line);
 				shooting(map_2, result_shooting_2, coordinate_entry_line, hit, computer_game_mode, false);
 				game_over = gameOver(result_shooting_2);
@@ -814,8 +982,6 @@ int main()
 				mapShow(map_1, x_pos, y_pos);
 				cursorMove(x_pos, y_pos);
 				mapShow(map_2, x_pos, y_pos, true);
-				::cout << ">>>";
-				::cout << endl;
 				shooting(map_1, result_shooting_1, coordinate_entry_line, hit, computer_game_mode);
 				game_over = gameOver(result_shooting_1);
 				if (!game_over)
@@ -838,8 +1004,8 @@ int main()
 				mapShow(map_1, x_pos, y_pos);
 				cursorMove(x_pos, y_pos);
 				mapShow(map_2, x_pos, y_pos, true);
-				Sleep(1000);
 				shooting(map_2, result_shooting_2, coordinate_entry_line, hit, computer_game_mode);
+				Sleep(1000);
 				game_over = gameOver(result_shooting_2);
 				if (!game_over)
 				{
@@ -857,8 +1023,8 @@ int main()
 				mapShow(map_1, x_pos, y_pos);
 				cursorMove(x_pos, y_pos);
 				mapShow(map_2, x_pos, y_pos, true);
-				Sleep(1000);
 				shooting(map_1, result_shooting_1, coordinate_entry_line, hit, computer_game_mode);
+				Sleep(1000);
 				game_over = gameOver(result_shooting_1);
 				if (!game_over)
 				{
