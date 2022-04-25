@@ -13,7 +13,6 @@ const string MISS = "@";
 const string HEADER = " ABCDEFGHIJ";
 const string SINGLE_FIELD = ":";
 const string INPUT_LINE = ">>>";
-int ships_id = 1;
 
 enum Button
 {
@@ -28,19 +27,19 @@ enum Button
 enum ConsoleColor
 {
 	BLACK = 0, 
-	Blue,
+	//Blue,
 	GREEN = 2, 
 	CYAN = 3,
 	RED = 4, 
-	Magenta, 
-	Brown, 
-	LightGray,
+	//MAGENTA = 5, 
+	//Brown, 
+	LIGHT_GRAY = 7,
 	DARK_GRAY = 8, 
-	LightBlue, 
-	LightGreen, 
-	LightCyan, 
-	LightRed,
-	LightMagenta, 
+	//LightBlue, 
+	//LightGreen, 
+	//LightCyan, 
+	LIGHT_RED = 12,
+	//LightMagenta, 
 	YELLOW = 14,
 	WHITE = 15
 };
@@ -256,6 +255,7 @@ bool setShip(int map[N][N], int x, int y, int dir, int size_ship)
 	int temp_x = x;
 	int temp_y = y;
 	bool setting_is_possible = 1;
+	int ships_id = 1;
 	//проверка возможности постановки корабля
 	for (int i = 0; i < size_ship; i++)
 	{
@@ -844,6 +844,7 @@ void shooting(int map[N][N], int result_shooting[N], string str, bool &hit, bool
 		{
 			std::cout << str_error;
 			Sleep(1000);
+			hit = true;
 			return;
 		}
 
@@ -884,6 +885,7 @@ void shooting(int map[N][N], int result_shooting[N], string str, bool &hit, bool
 		{
 			std::cout << str_error;
 			Sleep(1000);
+			hit = true;
 			return;
 		}
 		else
@@ -913,6 +915,7 @@ int main()
 
 	srand((unsigned int)time(NULL));
 	SetConsoleOutputCP(1251);
+	setColor(LIGHT_GRAY, BLACK);
 	gameMode(game_mode);
 	placementOfShips(placement_of_ships);
 	computerGameMode(computer_game_mode);
@@ -925,8 +928,8 @@ int main()
 	int y_pos{};
 	int x{}, y{};
 	int size_ship{ ships[0] };
-	bool hit{ true };
-
+	int ships_id{ 1 };
+	
 	if (placement_of_ships)
 	{
 		setManualShips(map_1, dir, x, y, size_ship, ships, y_pos);
@@ -950,9 +953,11 @@ int main()
 	}
 
 	string coordinate_entry_line;
+	string end_game;
 	int result_shooting_1[N]{ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
 	int result_shooting_2[N]{ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
 	bool game_over = true;
+	bool hit{ true };
 
 	while (game_over)
 	{
@@ -975,6 +980,7 @@ int main()
 			} while (hit);
 			if (!game_over)
 			{
+				end_game = { "Вы победили!" };
 				break;
 			}
 			do
@@ -994,6 +1000,7 @@ int main()
 			} while (hit);
 			if (!game_over)
 			{
+				end_game = { "Вы проиграли!" };
 				break;
 			}
 		}
@@ -1016,6 +1023,7 @@ int main()
 			} while (hit);
 			if (!game_over)
 			{
+				end_game = { "Бот №1 победил!" };
 				break;
 			}
 			do
@@ -1035,6 +1043,7 @@ int main()
 			} while (hit);
 			if (!game_over)
 			{
+				end_game = { "Бот №2 победил!" };
 				break;
 			}
 		}
@@ -1044,6 +1053,9 @@ int main()
 	mapShow(map_1, x_pos, y_pos);
 	cursorMove(x_pos, y_pos);
 	mapShow(map_2, x_pos, y_pos, true);
+	setColor(LIGHT_RED, BLACK);
+	::cout << end_game << endl;
+	setColor(WHITE, BLACK);
 
 	return 0;
 }
