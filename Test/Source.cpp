@@ -27,21 +27,21 @@ enum Button
 enum ConsoleColor
 {
 	BLACK = 0, 
-	//Blue,
 	GREEN = 2, 
 	CYAN = 3,
 	RED = 4, 
-	//MAGENTA = 5, 
-	//Brown, 
 	LIGHT_GRAY = 7,
 	DARK_GRAY = 8, 
-	//LightBlue, 
-	//LightGreen, 
-	//LightCyan, 
 	LIGHT_RED = 12,
-	//LightMagenta, 
 	YELLOW = 14,
 	WHITE = 15
+};
+
+struct Hit
+{
+	int x;
+	int y;
+	bool key = false;
 };
 
 void errorInput()
@@ -391,10 +391,10 @@ void mapShow(int map[N][N], int x_pos, int y_pos, bool flag = false)
 					::cout << HIT;
 					setColor(DARK_GRAY, BLACK);
 				}
-				//else if (map[j][i] >= 1)
-				//{
-				//	::cout << map[j][i];
-				//}
+				/*else if (map[j][i] >= 1)
+				{
+					::cout << map[j][i];
+				}*/
 				else
 				{
 					::cout << SINGLE_FIELD;
@@ -672,7 +672,7 @@ void fillingFieldsAroundShip(int map[N][N], int &id, int &x, int &y)
 	}
 }
 
-void resultShooting(int map[N][N], int result_shooting[N], int x, int y, bool &hit)
+void resultShooting(int map[N][N], int result_shooting[N], Hit &h, int x, int y, bool &hit, bool &mode_shooting)
 {
 	if (map[y][x] == 0)
 	{
@@ -691,12 +691,17 @@ void resultShooting(int map[N][N], int result_shooting[N], int x, int y, bool &h
 		result_shooting[result]--;
 		if (result_shooting[result] == 0)
 		{
+			mode_shooting = false;
+			h.key = false;
 			Sleep(500);
 			::cout << "Убит";
 			fillingFieldsAroundShip(map, id, x, y);
 		}
 		else
 		{
+			mode_shooting = true;
+			h.x = x;
+			h.y = y;
 			Sleep(500);
 			::cout << "Ранен";
 		}
@@ -709,6 +714,67 @@ void resultShooting(int map[N][N], int result_shooting[N], int x, int y, bool &h
 	}
 }
 
+void strategyBot(int map[N][N], Hit &h, int &x, int &y)
+{
+	int temp_x = x;
+	int temp_y = y;
+
+	if (h.key == false)
+	{
+		do
+		{
+			temp_x--;
+		} while (map[y][temp_x] == -2 && temp_x >= 0);
+
+		if (map[y][temp_x] >= 0 && temp_x >= 0)
+		{
+			x = temp_x;
+			return;
+		}
+		else
+		{
+			do
+			{
+				temp_x++;
+			} while (map[y][temp_x] == -2 && temp_x < N);
+
+			if (map[y][temp_x] >= 0 && temp_x < N)
+			{
+				x = temp_x;
+				return;
+			}
+		}
+	}
+
+	h.key = true;
+	if (h.key == true)
+	{
+		do
+		{
+			temp_y--;
+		} while (map[temp_y][x] == -2 && temp_y >= 0);
+
+		if (map[temp_y][x] >= 0 && temp_y >= 0)
+		{
+			y = temp_y;
+			return;
+		}
+		else
+		{
+			do
+			{
+				temp_y++;
+			} while (map[temp_y][x] == -2 && temp_y < N);
+
+			if (map[temp_y][x] >= 0 && temp_y < N)
+			{
+				y = temp_y;
+				return;
+			}
+		}
+	}
+}
+
 void strategyBot_1(int map[N][N], int &x, int &y)
 {
 	int temp_x = x;
@@ -717,6 +783,7 @@ void strategyBot_1(int map[N][N], int &x, int &y)
 	{
 		x = temp_x;
 		y = temp_y;
+		return;
 	}
 	else
 	{
@@ -760,32 +827,28 @@ void strategyBot_2(int map[N][N], int &x, int &y)
 	{
 		x = temp_x;
 		y = temp_y;
+		return;
 	}
 	else
 	{
 		do
 		{
-			++temp_x;
-			if (temp_x == N || temp_y == N)
+			temp_x += N / 2.5;
+			if (temp_x >= N)
 			{
-				temp_x = N / 2 - 1;
-				temp_y = N - 1;
-				if (map[temp_y][temp_x] >= 0)
+				temp_x -= (N - 1);
+				if (temp_y < N - 1)
 				{
-					break;
+					temp_y++;
 				}
-				do
+				else
 				{
-					--temp_y;
-					if (temp_x == N || temp_y < 0)
+					do
 					{
-						do
-						{
-							temp_x = rand() % N;
-							temp_y = rand() % N;
-						} while (map[temp_y][temp_x] < 0);
-					}
-				} while (map[temp_y][temp_x] < 0);
+						temp_x = rand() % N;
+						temp_y = rand() % N;
+					} while (map[temp_y][temp_x] < 0);
+				}
 			}
 		} while (map[temp_y][temp_x] < 0);
 		x = temp_x;
@@ -793,13 +856,22 @@ void strategyBot_2(int map[N][N], int &x, int &y)
 	}
 }
 
-void shooting(int map[N][N], int result_shooting[N], string str, bool &hit, bool &computer_game_mode, bool shooting_bot = true)
+void shooting(int map[N][N], int result_shooting[N], Hit &h, string str, bool &hit, bool &computer_game_mode, bool &mode_shooting, bool shooting_bot = true)
 {
 	if (shooting_bot)
 	{
 		int x;
 		int y;
-		if (computer_game_mode)
+		if (mode_shooting)
+		{
+			x = h.x;
+			y = h.y;
+			strategyBot(map, h, x, y);
+			::cout << static_cast<char>(y + 97) << x << endl;
+			resultShooting(map, result_shooting, h, x, y, hit, mode_shooting);
+			return;
+		}
+		else if (computer_game_mode)
 		{
 			do
 			{
@@ -807,7 +879,7 @@ void shooting(int map[N][N], int result_shooting[N], string str, bool &hit, bool
 				y = rand() % N;
 			} while (map[y][x] < 0);
 			::cout << static_cast<char>(y + 97) << x << endl;
-			resultShooting(map, result_shooting, x, y, hit);
+			resultShooting(map, result_shooting, h, x, y, hit, mode_shooting);
 			return;
 		}
 		else
@@ -819,16 +891,16 @@ void shooting(int map[N][N], int result_shooting[N], string str, bool &hit, bool
 				y = 0;
 				strategyBot_1(map, x, y);
 				::cout << static_cast<char>(y + 97) << x << endl;
-				resultShooting(map, result_shooting, x, y, hit);
+				resultShooting(map, result_shooting, h, x, y, hit, mode_shooting);
 				return;
 			}
 			else
 			{
-				x = 0;
-				y = N / 2 - 1;
+				x = N / 3;
+				y = 0;
 				strategyBot_2(map, x, y);
 				::cout << static_cast<char>(y + 97) << x << endl;
-				resultShooting(map, result_shooting, x, y, hit);
+				resultShooting(map, result_shooting, h, x, y, hit, mode_shooting);
 				return;
 			}
 		}
@@ -858,7 +930,7 @@ void shooting(int map[N][N], int result_shooting[N], string str, bool &hit, bool
 			}
 		}
 
-		if (y == -10)
+		if (y == -100)
 		{
 			temp_y = 0;
 			for (char i = 'A'; i <= 'J'; i++, temp_y++)
@@ -890,7 +962,7 @@ void shooting(int map[N][N], int result_shooting[N], string str, bool &hit, bool
 		}
 		else
 		{
-			resultShooting(map, result_shooting, x, y, hit);
+			resultShooting(map, result_shooting, h, x, y, hit, mode_shooting);
 		}
 	}
 }
@@ -954,10 +1026,14 @@ int main()
 
 	string coordinate_entry_line;
 	string end_game;
+	Hit h_1{ 0, 0 };
+	Hit h_2{ 0, 0 };
 	int result_shooting_1[N]{ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
 	int result_shooting_2[N]{ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
 	bool game_over = true;
 	bool hit{ true };
+	bool mode_shooting_1{ false };
+	bool mode_shooting_2{ false };
 
 	while (game_over)
 	{
@@ -969,7 +1045,7 @@ int main()
 				cursorMove(x_pos, y_pos);
 				mapShow(map_2, x_pos, y_pos, true);
 				getline(cin, coordinate_entry_line);
-				shooting(map_2, result_shooting_2, coordinate_entry_line, hit, computer_game_mode, false);
+				shooting(map_2, result_shooting_2, h_2, coordinate_entry_line, hit, computer_game_mode, mode_shooting_1, false);
 				game_over = gameOver(result_shooting_2);
 				if (!game_over)
 				{
@@ -988,7 +1064,7 @@ int main()
 				mapShow(map_1, x_pos, y_pos);
 				cursorMove(x_pos, y_pos);
 				mapShow(map_2, x_pos, y_pos, true);
-				shooting(map_1, result_shooting_1, coordinate_entry_line, hit, computer_game_mode);
+				shooting(map_1, result_shooting_1, h_1, coordinate_entry_line, hit, computer_game_mode, mode_shooting_2);
 				game_over = gameOver(result_shooting_1);
 				if (!game_over)
 				{
@@ -1011,7 +1087,7 @@ int main()
 				mapShow(map_1, x_pos, y_pos);
 				cursorMove(x_pos, y_pos);
 				mapShow(map_2, x_pos, y_pos, true);
-				shooting(map_2, result_shooting_2, coordinate_entry_line, hit, computer_game_mode);
+				shooting(map_2, result_shooting_2, h_2, coordinate_entry_line, hit, computer_game_mode, mode_shooting_1);
 				Sleep(1000);
 				game_over = gameOver(result_shooting_2);
 				if (!game_over)
@@ -1031,7 +1107,7 @@ int main()
 				mapShow(map_1, x_pos, y_pos);
 				cursorMove(x_pos, y_pos);
 				mapShow(map_2, x_pos, y_pos, true);
-				shooting(map_1, result_shooting_1, coordinate_entry_line, hit, computer_game_mode);
+				shooting(map_1, result_shooting_1, h_1, coordinate_entry_line, hit, computer_game_mode, mode_shooting_2);
 				Sleep(1000);
 				game_over = gameOver(result_shooting_1);
 				if (!game_over)
