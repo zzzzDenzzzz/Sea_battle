@@ -7,6 +7,7 @@ using namespace std;
 
 const int N = 10;
 const int x_pos = 13;
+const char space = ' ';
 const string DECK = "D";
 const string HIT = "X";
 const string MISS = "@";
@@ -37,6 +38,13 @@ enum ConsoleColor
 	WHITE = 15
 };
 
+enum SaveExitMenu
+{	
+	EXIT,
+	PAUSE,
+	SAVE_AND_EXIT,
+};
+
 struct Hit
 {
 	int x;
@@ -55,50 +63,9 @@ void clearKeyboardBuffer()
 void saveExitMessage()
 {
 	cout << endl;
-	cout << "Ctrl + p - остановка программы\n";
-	cout << "Ctrl + e - выход из программы\n";
-	cout << "Ctrl + s - запись и выход из программы\n";
-}
-
-void saveExitMenu()
-{
-	int a = 0;
-	if (GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(0x45))
-	{
-		a = 1;
-	}
-	else if (GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(0x50))
-	{
-		a = 2;
-	}
-	else if (GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(0x53))
-	{
-		a = 3;
-	}
-	else if (GetAsyncKeyState(VK_CONTROL))
-	{
-		a = 4;
-	}
-	else if (GetAsyncKeyState(0x45) || GetAsyncKeyState(0x50) || GetAsyncKeyState(0x53))
-	{
-		a = 4;
-	}
-	switch (a)
-	{
-	case 1:
-		cout << "e\n";
-		break;
-	case 2:
-		cout << "p\n";
-		break;
-	case 3:
-		cout << "s\n";
-		break;
-	case 4:
-		break;
-	default:
-		break;
-	}
+	cout << "Ctrl + P - остановка программы\n";
+	cout << "Ctrl + E - выход из программы\n";
+	cout << "Ctrl + S - запись и выход из программы\n";
 }
 
 void errorInput()
@@ -313,12 +280,12 @@ bool shipInMap(int x, int y, int dir, int size_ship)
 	return in_map;
 }
 
-bool setShip(int map[N][N], int x, int y, int dir, int size_ship)
+bool setShip(int map[N][N], int x, int y, int dir, int size_ship, int &ships_id)
 {
 	int temp_x = x;
 	int temp_y = y;
 	bool setting_is_possible = 1;
-	int ships_id = 1;
+
 	//проверка возможности постановки корабля
 	for (int i = 0; i < size_ship; i++)
 	{
@@ -424,7 +391,7 @@ void setColor(unsigned foreground, unsigned background)
 	SetConsoleTextAttribute(hConsole, (WORD)((background << 4) | foreground));
 }
 
-void mapShow(int map[N][N], int x_pos, int y_pos, bool flag = false)
+void mapShow(int map[N][N], int x_pos, int y_pos,bool all_decks_show, bool flag = false)
 {
 	setColor(WHITE, BLACK);
 	cout << HEADER << endl;
@@ -452,6 +419,12 @@ void mapShow(int map[N][N], int x_pos, int y_pos, bool flag = false)
 				{
 					setColor(RED, BLACK);
 					cout << HIT;
+					setColor(DARK_GRAY, BLACK);
+				}
+				else if (map[j][i] >= 1 && all_decks_show == true)
+				{
+					setColor(GREEN, BLACK);
+					cout << DECK;
 					setColor(DARK_GRAY, BLACK);
 				}
 				else
@@ -493,13 +466,13 @@ void mapShow(int map[N][N], int x_pos, int y_pos, bool flag = false)
 	setColor(CYAN, BLACK);
 }
 
-void setManualShips(int map[N][N], int dir, int x, int y, int size_ship, int ships[N], int y_pos)
+void setManualShips(int map[N][N], int dir, int x, int y, int size_ship, int ships[N], int y_pos, int &ships_id, bool all_decks_show)
 {
 	int button;
 	int i = 0;
 	while (i < N)
 	{
-		mapShow(map, x_pos, y_pos);
+		mapShow(map, x_pos, y_pos, all_decks_show);
 		shipShow(x, y, dir, size_ship);
 
 		int temp_x = x;
@@ -527,7 +500,7 @@ void setManualShips(int map[N][N], int dir, int x, int y, int size_ship, int shi
 			dir = !dir;
 			break;
 		case ENTER://enter установка корабля
-			if (setShip(map, x, y, dir, size_ship))
+			if (setShip(map, x, y, dir, size_ship, ships_id))
 			{
 				x = 0;
 				y = 0;
@@ -732,7 +705,7 @@ void fillingFieldsAroundShip(int map[N][N], int &id, int &x, int &y)
 	}
 }
 
-void resultShooting(int map[N][N], int result_shooting[N], Hit &h, int x, int y, bool &hit, bool &mode_shooting)
+void resultShooting(int map[N][N], int result_shooting[N], Hit &h, int &x, int &y, bool &hit, bool &mode_shooting)
 {
 	if (map[y][x] == 0)
 	{
@@ -916,7 +889,7 @@ void strategyBot_2(int map[N][N], int &x, int &y)
 	}
 }
 
-void shooting(int map[N][N], int result_shooting[N], Hit &h, string str, bool &hit, bool &computer_game_mode, bool &mode_shooting, bool shooting_bot = true)
+void shooting(int map[N][N], int result_shooting[N], Hit &h, bool &hit, bool &computer_game_mode, bool &mode_shooting, bool shooting_bot = true)
 {
 	if (shooting_bot)
 	{
@@ -968,13 +941,14 @@ void shooting(int map[N][N], int result_shooting[N], Hit &h, string str, bool &h
 	else
 	{
 		string str_error = "Ошибка ввода. Повторите попытку!\n";
-		char c = ' ';
+		string coordinate_entry_line;
+		getline(cin, coordinate_entry_line);
 		int x = -100;
 		int y = -100;
-		str.erase(remove(str.begin(), str.end(), c), str.end());
-		if (str.length() != 2)
+		coordinate_entry_line.erase(remove(coordinate_entry_line.begin(), coordinate_entry_line.end(), space), coordinate_entry_line.end());
+		if (coordinate_entry_line.length() != 2)
 		{
-			std::cout << str_error;
+			cout << str_error;
 			Sleep(1000);
 			hit = true;
 			return;
@@ -983,7 +957,7 @@ void shooting(int map[N][N], int result_shooting[N], Hit &h, string str, bool &h
 		int temp_y = 0;
 		for (char i = 'a'; i <= 'j'; i++, temp_y++)
 		{
-			if (str[0] == i)
+			if (coordinate_entry_line[0] == i)
 			{
 				y = temp_y;
 				break;
@@ -995,7 +969,7 @@ void shooting(int map[N][N], int result_shooting[N], Hit &h, string str, bool &h
 			temp_y = 0;
 			for (char i = 'A'; i <= 'J'; i++, temp_y++)
 			{
-				if (str[0] == i)
+				if (coordinate_entry_line[0] == i)
 				{
 					y = temp_y;
 					break;
@@ -1006,7 +980,7 @@ void shooting(int map[N][N], int result_shooting[N], Hit &h, string str, bool &h
 		int temp_x = 0;
 		for (char i = '0'; i <= '9'; i++, temp_x++)
 		{
-			if (str[1] == i)
+			if (coordinate_entry_line[1] == i)
 			{
 				x = temp_x;
 				break;
@@ -1039,13 +1013,38 @@ bool gameOver(int result_shuting[N])
 	return false;
 }
 
+void _msg(MSG &msg)
+{
+	PeekMessage(&msg, 0, 0, 0, 0x0001);
+	switch (msg.message)
+	{
+	case WM_HOTKEY:
+		if (msg.wParam == 1)
+		{
+			cout << "pause\n";
+			system("pause");
+			system("cls");
+		}
+		else if (msg.wParam == 2)
+		{
+			exit(0);
+		}
+	default:
+		break;
+	}
+}
+
 int main()
 {
-	while (true)
-	{
-		saveExitMenu();
-	}
-	
+	//MSG msg;
+	//RegisterHotKey(0, 1, MOD_CONTROL, 'P');
+	//RegisterHotKey(0, 2, MOD_CONTROL, 'E');
+	//
+	//do
+	//{
+	//	_msg(msg);
+	//} while (GetMessage(&msg, 0, 0, 0));
+
 	bool game_mode{ true };          // режимы игры: человек - компьютер(true), компьютер - компьютер(false)
 	bool placement_of_ships{ true }; // расстановка кораблей: вручную(true), компьютер расставляет за игрока(false)
 	bool computer_game_mode{ true }; // режим игры компьютера: случайный выстрел(true), интеллектуальная игра(false)
@@ -1066,10 +1065,11 @@ int main()
 	int x{}, y{};
 	int size_ship{ ships[0] };
 	int ships_id{ 1 };
+	bool all_decks_show{ false };
 	
 	if (placement_of_ships)
 	{
-		setManualShips(map_1, dir, x, y, size_ship, ships, y_pos);
+		setManualShips(map_1, dir, x, y, size_ship, ships, y_pos, ships_id, all_decks_show);
 		ships_id = 1;
 		for (int i = 0; i < N; i++)
 		{
@@ -1089,13 +1089,12 @@ int main()
 		}
 	}
 
-	string coordinate_entry_line;
 	string end_game;
 	Hit h_1{ 0, 0 };
 	Hit h_2{ 0, 0 };
 	int result_shooting_1[N]{ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
 	int result_shooting_2[N]{ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
-	bool game_over = true;
+	bool game_over{ true };
 	bool hit{ true };
 	bool mode_shooting_1{ false };
 	bool mode_shooting_2{ false };
@@ -1106,11 +1105,10 @@ int main()
 		{
 			do
 			{
-				mapShow(map_1, x_pos, y_pos);
+				mapShow(map_1, x_pos, y_pos, all_decks_show);
 				cursorMove(x_pos, y_pos);
-				mapShow(map_2, x_pos, y_pos, true);
-				getline(cin, coordinate_entry_line);
-				shooting(map_2, result_shooting_2, h_2, coordinate_entry_line, hit, computer_game_mode, mode_shooting_1, false);
+				mapShow(map_2, x_pos, y_pos, all_decks_show, true);
+				shooting(map_2, result_shooting_2, h_2, hit, computer_game_mode, mode_shooting_1, false);
 				game_over = gameOver(result_shooting_2);
 				if (!game_over)
 				{
@@ -1126,16 +1124,16 @@ int main()
 			}
 			do
 			{
-				mapShow(map_1, x_pos, y_pos);
+				mapShow(map_1, x_pos, y_pos, all_decks_show);
 				cursorMove(x_pos, y_pos);
-				mapShow(map_2, x_pos, y_pos, true);
-				shooting(map_1, result_shooting_1, h_1, coordinate_entry_line, hit, computer_game_mode, mode_shooting_2);
+				mapShow(map_2, x_pos, y_pos, all_decks_show, true);
+				shooting(map_1, result_shooting_1, h_1, hit, computer_game_mode, mode_shooting_2);
 				game_over = gameOver(result_shooting_1);
 				if (!game_over)
 				{
 					break;
 				}
-				::cout << endl;
+				cout << endl;
 				Sleep(1000);
 				system("cls");
 			} while (hit);
@@ -1149,10 +1147,10 @@ int main()
 		{
 			do
 			{
-				mapShow(map_1, x_pos, y_pos);
+				mapShow(map_1, x_pos, y_pos, all_decks_show);
 				cursorMove(x_pos, y_pos);
-				mapShow(map_2, x_pos, y_pos, true);
-				shooting(map_2, result_shooting_2, h_2, coordinate_entry_line, hit, computer_game_mode, mode_shooting_1);
+				mapShow(map_2, x_pos, y_pos, all_decks_show, true);
+				shooting(map_2, result_shooting_2, h_2, hit, computer_game_mode, mode_shooting_1);
 				Sleep(1000);
 				game_over = gameOver(result_shooting_2);
 				if (!game_over)
@@ -1169,10 +1167,10 @@ int main()
 			}
 			do
 			{
-				mapShow(map_1, x_pos, y_pos);
+				mapShow(map_1, x_pos, y_pos, all_decks_show);
 				cursorMove(x_pos, y_pos);
-				mapShow(map_2, x_pos, y_pos, true);
-				shooting(map_1, result_shooting_1, h_1, coordinate_entry_line, hit, computer_game_mode, mode_shooting_2);
+				mapShow(map_2, x_pos, y_pos, all_decks_show, true);
+				shooting(map_1, result_shooting_1, h_1, hit, computer_game_mode, mode_shooting_2);
 				Sleep(1000);
 				game_over = gameOver(result_shooting_1);
 				if (!game_over)
@@ -1191,12 +1189,15 @@ int main()
 	}
 
 	system("cls");
-	mapShow(map_1, x_pos, y_pos);
+	all_decks_show = true;
+	mapShow(map_1, x_pos, y_pos, all_decks_show);
 	cursorMove(x_pos, y_pos);
-	mapShow(map_2, x_pos, y_pos, true);
+	mapShow(map_2, x_pos, y_pos, all_decks_show, true);
 	setColor(LIGHT_RED, BLACK);
 	cout << end_game << endl;
 	setColor(WHITE, BLACK);
+	//UnregisterHotKey(0, 1);
+	//UnregisterHotKey(0, 2);
 
 	return 0;
 }
