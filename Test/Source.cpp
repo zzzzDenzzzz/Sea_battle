@@ -44,11 +44,68 @@ struct Hit
 	bool key = false;
 };
 
+void clearKeyboardBuffer()
+{
+	while (_kbhit())
+	{
+		_getch();
+	}
+}
+
+void saveExitMessage()
+{
+	cout << endl;
+	cout << "Ctrl + p - остановка программы\n";
+	cout << "Ctrl + e - выход из программы\n";
+	cout << "Ctrl + s - запись и выход из программы\n";
+}
+
+void saveExitMenu()
+{
+	int a = 0;
+	if (GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(0x45))
+	{
+		a = 1;
+	}
+	else if (GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(0x50))
+	{
+		a = 2;
+	}
+	else if (GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(0x53))
+	{
+		a = 3;
+	}
+	else if (GetAsyncKeyState(VK_CONTROL))
+	{
+		a = 4;
+	}
+	else if (GetAsyncKeyState(0x45) || GetAsyncKeyState(0x50) || GetAsyncKeyState(0x53))
+	{
+		a = 4;
+	}
+	switch (a)
+	{
+	case 1:
+		cout << "e\n";
+		break;
+	case 2:
+		cout << "p\n";
+		break;
+	case 3:
+		cout << "s\n";
+		break;
+	case 4:
+		break;
+	default:
+		break;
+	}
+}
+
 void errorInput()
 {
-	::cout << "\n\nОшибка ввода. Попробуйте еще раз\n\n";
+	cout << "\n\nОшибка ввода. Попробуйте еще раз\n\n";
 	Sleep(1000);
-	::system("cls");
+	system("cls");
 }
 
 void gameMode(bool &game_mode)
@@ -58,10 +115,10 @@ void gameMode(bool &game_mode)
 	string str;
 	while (exit_cicle)
 	{
-		::cout << "Режим игры:\n\n";
-		::cout << "1 - Человек - компьютер\n";
-		::cout << "2 - Компьютер - компьютер\n";
-		::cout << "\n>>>";
+		cout << "Режим игры:\n\n";
+		cout << "1 - Человек - компьютер\n";
+		cout << "2 - Компьютер - компьютер\n";
+		cout << "\n>>>";
 
 		ch = _getch();
 		switch (ch)
@@ -70,19 +127,21 @@ void gameMode(bool &game_mode)
 			str = "человек - компьютер\n";
 			exit_cicle = false;
 			game_mode = true;
+			clearKeyboardBuffer();
 			break;
 		case '2':
 			str = "компьютер - компьютер\n";
 			exit_cicle = false;
 			game_mode = false;
+			clearKeyboardBuffer();
 			break;
 		default:
 			errorInput();
 			break;
 		}
 	}
-
-	::system("cls");
+	clearKeyboardBuffer();
+	system("cls");
 }
 
 void placementOfShips(bool &placement_of_ships)
@@ -92,10 +151,10 @@ void placementOfShips(bool &placement_of_ships)
 	bool exit_cicle = true;
 	while (exit_cicle)
 	{
-		::cout << "Расстановка кораблей:\n\n";
-		::cout << "1 - Вручную\n";
-		::cout << "2 - Компьютер расставляет за игрока\n";
-		::cout << "\n>>>";
+		cout << "Расстановка кораблей:\n\n";
+		cout << "1 - Вручную\n";
+		cout << "2 - Компьютер расставляет за игрока\n";
+		cout << "\n>>>";
 
 		ch = _getch();
 		switch (ch)
@@ -104,19 +163,21 @@ void placementOfShips(bool &placement_of_ships)
 			str = "вручную\n";
 			exit_cicle = false;
 			placement_of_ships = true;
+			clearKeyboardBuffer();
 			break;
 		case '2':
 			str = "компьютер расставляет за игрока\n";
 			exit_cicle = false;
 			placement_of_ships = false;
+			clearKeyboardBuffer();
 			break;
 		default:
 			errorInput();
 			break;
 		}
 	}
-
-	::system("cls");
+	clearKeyboardBuffer();
+	system("cls");
 }
 
 void computerGameMode(bool &computer_game_mode)
@@ -126,10 +187,10 @@ void computerGameMode(bool &computer_game_mode)
 	char ch;
 	while (exit_cicle)
 	{
-		::cout << "Режим игры компьютера:\n\n";
-		::cout << "1 - Случайный выстрел\n";
-		::cout << "2 - Интеллектуальная игра\n";
-		::cout << "\n>>>";
+		cout << "Режим игры компьютера:\n\n";
+		cout << "1 - Случайный выстрел\n";
+		cout << "2 - Интеллектуальная игра\n";
+		cout << "\n>>>";
 
 		ch = _getch();
 		switch (ch)
@@ -138,19 +199,21 @@ void computerGameMode(bool &computer_game_mode)
 			str = "случайный выстрел\n";
 			exit_cicle = false;
 			computer_game_mode = true;
+			clearKeyboardBuffer();
 			break;
 		case '2':
 			str = "интеллектуальная игра\n";
 			exit_cicle = false;
 			computer_game_mode = false;
+			clearKeyboardBuffer();
 			break;
 		default:
 			errorInput();
 			break;
 		}
 	}
-
-	::system("cls");
+	clearKeyboardBuffer();
+	system("cls");
 }
 
 void settingGameModes(bool &game_mode, bool &placement_of_ships, bool &computer_game_mode)
@@ -164,7 +227,7 @@ void settingGameModes(bool &game_mode, bool &placement_of_ships, bool &computer_
 	{
 		str_1 = "компьютер - компьютер\n";
 	}
-	::cout << "Режим игры: " << str_1 << endl;
+	cout << "Режим игры: " << str_1 << endl;
 	if (placement_of_ships)
 	{
 		str_2 = "вручную\n";
@@ -173,7 +236,7 @@ void settingGameModes(bool &game_mode, bool &placement_of_ships, bool &computer_
 	{
 		str_2 = "компьютер расставляет за игрока\n";
 	}
-	::cout << "Расстановка кораблей: " << str_2 << endl;
+	cout << "Расстановка кораблей: " << str_2 << endl;
 	if (computer_game_mode)
 	{
 		str_3 = "случайный выстрел\n";
@@ -182,11 +245,11 @@ void settingGameModes(bool &game_mode, bool &placement_of_ships, bool &computer_
 	{
 		str_3 = "интеллектуальная игра\n";
 	}
-	::cout << "Режим игры компьютера: " << str_3 << endl;
-	::cout << "\t\tЗагрузка игры... " << endl;
+	cout << "Режим игры компьютера: " << str_3 << endl;
+	cout << "\t\tЗагрузка игры... " << endl;
 
 	Sleep(5000);
-	::system("cls");
+	system("cls");
 }
 
 void gotoXY(short x, short y)
@@ -228,7 +291,7 @@ void shipShow(int x, int y, int dir, int size_ship)
 	for (int i = 0; i < size_ship; i++)
 	{
 		gotoXY(x + 1, y + 1);
-		::cout << DECK;
+		cout << DECK;
 		shipXY(x, y, dir);
 	}
 }
@@ -364,7 +427,7 @@ void setColor(unsigned foreground, unsigned background)
 void mapShow(int map[N][N], int x_pos, int y_pos, bool flag = false)
 {
 	setColor(WHITE, BLACK);
-	::cout << HEADER << endl;
+	cout << HEADER << endl;
 	setColor(DARK_GRAY, BLACK);
 	for (int i = 0; i < N; i++)
 	{
@@ -373,7 +436,7 @@ void mapShow(int map[N][N], int x_pos, int y_pos, bool flag = false)
 			cursorMove(x_pos, ++y_pos);
 		}
 		setColor(WHITE, BLACK);
-		::cout << i;
+		cout << i;
 		setColor(DARK_GRAY, BLACK);
 		for (int j = 0; j < N; j++)
 		{
@@ -382,54 +445,51 @@ void mapShow(int map[N][N], int x_pos, int y_pos, bool flag = false)
 				if (map[j][i] == -1)
 				{
 					setColor(WHITE, BLACK);
-					::cout << MISS;
+					cout << MISS;
 					setColor(DARK_GRAY, BLACK);
 				}
 				else if (map[j][i] == -2)
 				{
 					setColor(RED, BLACK);
-					::cout << HIT;
+					cout << HIT;
 					setColor(DARK_GRAY, BLACK);
 				}
-				/*else if (map[j][i] >= 1)
-				{
-					::cout << map[j][i];
-				}*/
 				else
 				{
-					::cout << SINGLE_FIELD;
+					cout << SINGLE_FIELD;
 				}
 			}
 			else
 			{
 				if (map[j][i] == 0)
 				{
-					::cout << SINGLE_FIELD;
+					cout << SINGLE_FIELD;
 				}
 				else if (map[j][i] >= 1)
 				{
 					setColor(GREEN, BLACK);
-					::cout << DECK;
+					cout << DECK;
 					setColor(DARK_GRAY, BLACK);
 				}
 				else if (map[j][i] == -1)
 				{
 					setColor(WHITE, BLACK);
-					::cout << MISS;
+					cout << MISS;
 					setColor(DARK_GRAY, BLACK);
 				}
 				else if (map[j][i] == -2)
 				{
 					setColor(RED, BLACK);
-					::cout << HIT;
+					cout << HIT;
 					setColor(DARK_GRAY, BLACK);
 				}
 			}
 		}
-		::cout << endl;
+		cout << endl;
 	}
+	saveExitMessage();
 	setColor(YELLOW, BLACK);
-	::cout << endl << INPUT_LINE;
+	cout << endl << INPUT_LINE;
 	setColor(CYAN, BLACK);
 }
 
@@ -484,7 +544,7 @@ void setManualShips(int map[N][N], int dir, int x, int y, int size_ship, int shi
 			y = temp_y;
 			dir = temp_dir;
 		}
-		::system("cls");
+		system("cls");
 	}
 }
 
@@ -679,7 +739,7 @@ void resultShooting(int map[N][N], int result_shooting[N], Hit &h, int x, int y,
 		map[y][x] = -1; // промах
 		hit = false;
 		Sleep(500);
-		::cout << "Промах";
+		cout << "Промах";
 	}
 	else if (map[y][x] >= 1)
 	{
@@ -694,7 +754,7 @@ void resultShooting(int map[N][N], int result_shooting[N], Hit &h, int x, int y,
 			mode_shooting = false;
 			h.key = false;
 			Sleep(500);
-			::cout << "Убит";
+			cout << "Убит";
 			fillingFieldsAroundShip(map, id, x, y);
 		}
 		else
@@ -703,13 +763,13 @@ void resultShooting(int map[N][N], int result_shooting[N], Hit &h, int x, int y,
 			h.x = x;
 			h.y = y;
 			Sleep(500);
-			::cout << "Ранен";
+			cout << "Ранен";
 		}
 	}
 	else
 	{
 		Sleep(500);
-		::cout << "По этой координате уже стреляли!";
+		cout << "По этой координате уже стреляли!";
 		hit = true;
 	}
 }
@@ -867,7 +927,7 @@ void shooting(int map[N][N], int result_shooting[N], Hit &h, string str, bool &h
 			x = h.x;
 			y = h.y;
 			strategyBot(map, h, x, y);
-			::cout << static_cast<char>(y + 97) << x << endl;
+			cout << static_cast<char>(y + 97) << x << endl;
 			resultShooting(map, result_shooting, h, x, y, hit, mode_shooting);
 			return;
 		}
@@ -878,7 +938,7 @@ void shooting(int map[N][N], int result_shooting[N], Hit &h, string str, bool &h
 				x = rand() % N;
 				y = rand() % N;
 			} while (map[y][x] < 0);
-			::cout << static_cast<char>(y + 97) << x << endl;
+			cout << static_cast<char>(y + 97) << x << endl;
 			resultShooting(map, result_shooting, h, x, y, hit, mode_shooting);
 			return;
 		}
@@ -890,7 +950,7 @@ void shooting(int map[N][N], int result_shooting[N], Hit &h, string str, bool &h
 				x = 0;
 				y = 0;
 				strategyBot_1(map, x, y);
-				::cout << static_cast<char>(y + 97) << x << endl;
+				cout << static_cast<char>(y + 97) << x << endl;
 				resultShooting(map, result_shooting, h, x, y, hit, mode_shooting);
 				return;
 			}
@@ -899,7 +959,7 @@ void shooting(int map[N][N], int result_shooting[N], Hit &h, string str, bool &h
 				x = N / 3;
 				y = 0;
 				strategyBot_2(map, x, y);
-				::cout << static_cast<char>(y + 97) << x << endl;
+				cout << static_cast<char>(y + 97) << x << endl;
 				resultShooting(map, result_shooting, h, x, y, hit, mode_shooting);
 				return;
 			}
@@ -955,7 +1015,7 @@ void shooting(int map[N][N], int result_shooting[N], Hit &h, string str, bool &h
 
 		if (x == -100 || y == -100)
 		{
-			std::cout << str_error;
+			cout << str_error;
 			Sleep(1000);
 			hit = true;
 			return;
@@ -981,6 +1041,11 @@ bool gameOver(int result_shuting[N])
 
 int main()
 {
+	while (true)
+	{
+		saveExitMenu();
+	}
+	
 	bool game_mode{ true };          // режимы игры: человек - компьютер(true), компьютер - компьютер(false)
 	bool placement_of_ships{ true }; // расстановка кораблей: вручную(true), компьютер расставляет за игрока(false)
 	bool computer_game_mode{ true }; // режим игры компьютера: случайный выстрел(true), интеллектуальная игра(false)
@@ -1052,7 +1117,7 @@ int main()
 					break;
 				}
 				Sleep(1000);
-				::system("cls");
+				system("cls");
 			} while (hit);
 			if (!game_over)
 			{
@@ -1072,7 +1137,7 @@ int main()
 				}
 				::cout << endl;
 				Sleep(1000);
-				::system("cls");
+				system("cls");
 			} while (hit);
 			if (!game_over)
 			{
@@ -1095,7 +1160,7 @@ int main()
 					break;
 				}
 				Sleep(1000);
-				::system("cls");
+				system("cls");
 			} while (hit);
 			if (!game_over)
 			{
@@ -1115,7 +1180,7 @@ int main()
 					break;
 				}
 				Sleep(1000);
-				::system("cls");
+				system("cls");
 			} while (hit);
 			if (!game_over)
 			{
@@ -1125,12 +1190,12 @@ int main()
 		}
 	}
 
-	::system("cls");
+	system("cls");
 	mapShow(map_1, x_pos, y_pos);
 	cursorMove(x_pos, y_pos);
 	mapShow(map_2, x_pos, y_pos, true);
 	setColor(LIGHT_RED, BLACK);
-	::cout << end_game << endl;
+	cout << end_game << endl;
 	setColor(WHITE, BLACK);
 
 	return 0;
