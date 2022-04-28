@@ -2,12 +2,14 @@
 #include<Windows.h>
 #include<conio.h>
 #include<string>
+#include<fstream>
+#include<iomanip>
 
 using namespace std;
 
 const int N = 10;
-const int x_pos = 13;
-const char space = ' ';
+const int X_POS = 13;
+const char SPACE = ' ';
 const char E_BUTTON = 'E';
 const char P_BUTTON = 'P';
 const char S_BUTTON = 'S';
@@ -30,19 +32,19 @@ enum Button
 
 enum ConsoleColor
 {
-	BLACK = 0, 
-	GREEN = 2, 
+	BLACK = 0,
+	GREEN = 2,
 	CYAN = 3,
-	RED = 4, 
+	RED = 4,
 	LIGHT_GRAY = 7,
-	DARK_GRAY = 8, 
+	DARK_GRAY = 8,
 	LIGHT_RED = 12,
 	YELLOW = 14,
 	WHITE = 15
 };
 
 enum SaveExitMenu
-{	
+{
 	EXIT = 1,
 	PAUSE,
 	SAVE_AND_EXIT,
@@ -447,7 +449,7 @@ void mapShow(int map[N][N], int x_pos, int y_pos, bool all_decks_show, bool flag
 	{
 		if (flag)
 		{
-			cursorMove(x_pos, ++y_pos);
+			cursorMove(X_POS, ++y_pos);
 		}
 		setColor(WHITE, BLACK);
 		cout << i;
@@ -519,7 +521,7 @@ void setManualShips(int map[N][N], int dir, int x, int y, int size_ship, int shi
 	int i = 0;
 	while (i < N)
 	{
-		mapShow(map, x_pos, y_pos, all_decks_show);
+		mapShow(map, X_POS, y_pos, all_decks_show);
 		shipShow(x, y, dir, size_ship);
 
 		int temp_x = x;
@@ -993,7 +995,7 @@ void shooting(int map[N][N], int result_shooting[N], Hit &h, MSG &msg, bool &hit
 		getline(cin, coordinate_entry_line);
 		int x = -100;
 		int y = -100;
-		coordinate_entry_line.erase(remove(coordinate_entry_line.begin(), coordinate_entry_line.end(), space), coordinate_entry_line.end());
+		coordinate_entry_line.erase(remove(coordinate_entry_line.begin(), coordinate_entry_line.end(), SPACE), coordinate_entry_line.end());
 		if (coordinate_entry_line.length() != 2)
 		{
 			cout << str_error;
@@ -1061,6 +1063,31 @@ bool gameOver(int result_shuting[N])
 	return false;
 }
 
+void file(int map_1[N][N], int map_2[N][N], ofstream &fout)
+{
+	fout.open("map.txt", ios::binary);
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			fout << setw(2) << map_1[j][i] << " ";
+		}
+		fout << "\n";
+	}
+
+	fout << "\n";
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			fout << setw(2) << map_2[j][i] << " ";
+		}
+		fout << "\n";
+	}
+	fout.close();
+	//system("pause");
+}
+
 int main()
 {
 	bool game_mode{ true };          // режимы игры: человек - компьютер(true), компьютер - компьютер(false)
@@ -1119,16 +1146,19 @@ int main()
 	bool mode_shooting_1{ false };
 	bool mode_shooting_2{ false };
 
+	ofstream fout;
+
 	while (game_over)
 	{
 		if (game_mode)
 		{
 			do
 			{
-				mapShow(map_1, x_pos, y_pos, all_decks_show);
-				cursorMove(x_pos, y_pos);
-				mapShow(map_2, x_pos, y_pos, all_decks_show, true);
+				mapShow(map_1, X_POS, y_pos, all_decks_show);
+				cursorMove(X_POS, y_pos);
+				mapShow(map_2, X_POS, y_pos, all_decks_show, true);
 				shooting(map_2, result_shooting_2, h_2, msg, hit, computer_game_mode, mode_shooting_1, false);
+				file(map_1, map_2, fout);
 				game_over = gameOver(result_shooting_2);
 				if (!game_over)
 				{
@@ -1144,10 +1174,11 @@ int main()
 			}
 			do
 			{
-				mapShow(map_1, x_pos, y_pos, all_decks_show);
-				cursorMove(x_pos, y_pos);
-				mapShow(map_2, x_pos, y_pos, all_decks_show, true);
+				mapShow(map_1, X_POS, y_pos, all_decks_show);
+				cursorMove(X_POS, y_pos);
+				mapShow(map_2, X_POS, y_pos, all_decks_show, true);
 				shooting(map_1, result_shooting_1, h_1, msg, hit, computer_game_mode, mode_shooting_2);
+				file(map_1, map_2, fout);
 				game_over = gameOver(result_shooting_1);
 				if (!game_over)
 				{
@@ -1167,9 +1198,9 @@ int main()
 		{
 			do
 			{
-				mapShow(map_1, x_pos, y_pos, all_decks_show);
-				cursorMove(x_pos, y_pos);
-				mapShow(map_2, x_pos, y_pos, all_decks_show, true);
+				mapShow(map_1, X_POS, y_pos, all_decks_show);
+				cursorMove(X_POS, y_pos);
+				mapShow(map_2, X_POS, y_pos, all_decks_show, true);
 				shooting(map_2, result_shooting_2, h_2, msg, hit, computer_game_mode, mode_shooting_1);
 				Sleep(1000);
 				game_over = gameOver(result_shooting_2);
@@ -1187,9 +1218,9 @@ int main()
 			}
 			do
 			{
-				mapShow(map_1, x_pos, y_pos, all_decks_show);
-				cursorMove(x_pos, y_pos);
-				mapShow(map_2, x_pos, y_pos, all_decks_show, true);
+				mapShow(map_1, X_POS, y_pos, all_decks_show);
+				cursorMove(X_POS, y_pos);
+				mapShow(map_2, X_POS, y_pos, all_decks_show, true);
 				shooting(map_1, result_shooting_1, h_1, msg, hit, computer_game_mode, mode_shooting_2);
 				Sleep(1000);
 				game_over = gameOver(result_shooting_1);
@@ -1210,9 +1241,9 @@ int main()
 
 	system("cls");
 	all_decks_show = true;
-	mapShow(map_1, x_pos, y_pos, all_decks_show);
-	cursorMove(x_pos, y_pos);
-	mapShow(map_2, x_pos, y_pos, all_decks_show, true);
+	mapShow(map_1, X_POS, y_pos, all_decks_show);
+	cursorMove(X_POS, y_pos);
+	mapShow(map_2, X_POS, y_pos, all_decks_show, true);
 	setColor(LIGHT_RED, BLACK);
 	cout << end_game << endl;
 	setColor(WHITE, BLACK);
