@@ -104,7 +104,7 @@ void _msg(MSG &msg)
 				cout << "Завершение работы программы...\n";
 				Sleep(3000);
 				system("cls");
-				exit(0);
+				_exit(0);
 			}
 			else if (msg.wParam == PAUSE)
 			{
