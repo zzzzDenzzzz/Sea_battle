@@ -8,6 +8,9 @@ using namespace std;
 const int N = 10;
 const int x_pos = 13;
 const char space = ' ';
+const char E_BUTTON = 'E';
+const char P_BUTTON = 'P';
+const char S_BUTTON = 'S';
 const string DECK = "D";
 const string HIT = "X";
 const string MISS = "@";
@@ -40,7 +43,7 @@ enum ConsoleColor
 
 enum SaveExitMenu
 {	
-	EXIT,
+	EXIT = 1,
 	PAUSE,
 	SAVE_AND_EXIT,
 };
@@ -51,6 +54,12 @@ struct Hit
 	int y;
 	bool key = false;
 };
+
+void setColor(unsigned foreground, unsigned background)
+{
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, (WORD)((background << 4) | foreground));
+}
 
 void clearKeyboardBuffer()
 {
@@ -66,6 +75,50 @@ void saveExitMessage()
 	cout << "Ctrl + P - остановка программы\n";
 	cout << "Ctrl + E - выход из программы\n";
 	cout << "Ctrl + S - запись и выход из программы\n";
+}
+
+void registerHotKeyInGame()
+{
+	RegisterHotKey(0, EXIT, MOD_CONTROL, E_BUTTON);
+	RegisterHotKey(0, PAUSE, MOD_CONTROL, P_BUTTON);
+	RegisterHotKey(0, SAVE_AND_EXIT, MOD_CONTROL, S_BUTTON);
+}
+
+void unregisterHotKeyInGame()
+{
+	UnregisterHotKey(0, 1);
+	UnregisterHotKey(0, 2);
+	UnregisterHotKey(0, 3);
+}
+
+void _msg(MSG &msg)
+{
+	while (PeekMessage(&msg, 0, 0, 0, 0x0001))
+	{
+		switch (msg.message)
+		{
+		case WM_HOTKEY:
+			if (msg.wParam == EXIT)
+			{
+				setColor(WHITE, BLACK);
+				cout << "Завершение работы программы...\n";
+				Sleep(3000);
+				system("cls");
+				exit(0);
+			}
+			else if (msg.wParam == PAUSE)
+			{
+				setColor(WHITE, BLACK);
+				system("pause");
+				setColor(CYAN, BLACK);
+			}
+			else if (msg.wParam == SAVE_AND_EXIT)
+			{
+				cout << "save_and_exit\n";
+				system("pause");
+			}
+		}
+	}
 }
 
 void errorInput()
@@ -385,13 +438,7 @@ bool setShip(int map[N][N], int x, int y, int dir, int size_ship, int &ships_id)
 	return setting_is_possible;
 }
 
-void setColor(unsigned foreground, unsigned background)
-{
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, (WORD)((background << 4) | foreground));
-}
-
-void mapShow(int map[N][N], int x_pos, int y_pos,bool all_decks_show, bool flag = false)
+void mapShow(int map[N][N], int x_pos, int y_pos, bool all_decks_show, bool flag = false)
 {
 	setColor(WHITE, BLACK);
 	cout << HEADER << endl;
@@ -889,8 +936,9 @@ void strategyBot_2(int map[N][N], int &x, int &y)
 	}
 }
 
-void shooting(int map[N][N], int result_shooting[N], Hit &h, bool &hit, bool &computer_game_mode, bool &mode_shooting, bool shooting_bot = true)
+void shooting(int map[N][N], int result_shooting[N], Hit &h, MSG &msg, bool &hit, bool &computer_game_mode, bool &mode_shooting, bool shooting_bot = true)
 {
+	_msg(msg);
 	if (shooting_bot)
 	{
 		int x;
@@ -1013,44 +1061,15 @@ bool gameOver(int result_shuting[N])
 	return false;
 }
 
-void _msg(MSG &msg)
-{
-	PeekMessage(&msg, 0, 0, 0, 0x0001);
-	switch (msg.message)
-	{
-	case WM_HOTKEY:
-		if (msg.wParam == 1)
-		{
-			cout << "pause\n";
-			system("pause");
-			system("cls");
-		}
-		else if (msg.wParam == 2)
-		{
-			exit(0);
-		}
-	default:
-		break;
-	}
-}
-
 int main()
 {
-	//MSG msg;
-	//RegisterHotKey(0, 1, MOD_CONTROL, 'P');
-	//RegisterHotKey(0, 2, MOD_CONTROL, 'E');
-	//
-	//do
-	//{
-	//	_msg(msg);
-	//} while (GetMessage(&msg, 0, 0, 0));
-
 	bool game_mode{ true };          // режимы игры: человек - компьютер(true), компьютер - компьютер(false)
 	bool placement_of_ships{ true }; // расстановка кораблей: вручную(true), компьютер расставляет за игрока(false)
 	bool computer_game_mode{ true }; // режим игры компьютера: случайный выстрел(true), интеллектуальная игра(false)
 
 	srand((unsigned int)time(NULL));
 	SetConsoleOutputCP(1251);
+	registerHotKeyInGame();
 	setColor(LIGHT_GRAY, BLACK);
 	gameMode(game_mode);
 	placementOfShips(placement_of_ships);
@@ -1089,9 +1108,10 @@ int main()
 		}
 	}
 
-	string end_game;
+	MSG msg;
 	Hit h_1{ 0, 0 };
 	Hit h_2{ 0, 0 };
+	string end_game;
 	int result_shooting_1[N]{ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
 	int result_shooting_2[N]{ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
 	bool game_over{ true };
@@ -1108,7 +1128,7 @@ int main()
 				mapShow(map_1, x_pos, y_pos, all_decks_show);
 				cursorMove(x_pos, y_pos);
 				mapShow(map_2, x_pos, y_pos, all_decks_show, true);
-				shooting(map_2, result_shooting_2, h_2, hit, computer_game_mode, mode_shooting_1, false);
+				shooting(map_2, result_shooting_2, h_2, msg, hit, computer_game_mode, mode_shooting_1, false);
 				game_over = gameOver(result_shooting_2);
 				if (!game_over)
 				{
@@ -1127,7 +1147,7 @@ int main()
 				mapShow(map_1, x_pos, y_pos, all_decks_show);
 				cursorMove(x_pos, y_pos);
 				mapShow(map_2, x_pos, y_pos, all_decks_show, true);
-				shooting(map_1, result_shooting_1, h_1, hit, computer_game_mode, mode_shooting_2);
+				shooting(map_1, result_shooting_1, h_1, msg, hit, computer_game_mode, mode_shooting_2);
 				game_over = gameOver(result_shooting_1);
 				if (!game_over)
 				{
@@ -1150,7 +1170,7 @@ int main()
 				mapShow(map_1, x_pos, y_pos, all_decks_show);
 				cursorMove(x_pos, y_pos);
 				mapShow(map_2, x_pos, y_pos, all_decks_show, true);
-				shooting(map_2, result_shooting_2, h_2, hit, computer_game_mode, mode_shooting_1);
+				shooting(map_2, result_shooting_2, h_2, msg, hit, computer_game_mode, mode_shooting_1);
 				Sleep(1000);
 				game_over = gameOver(result_shooting_2);
 				if (!game_over)
@@ -1170,7 +1190,7 @@ int main()
 				mapShow(map_1, x_pos, y_pos, all_decks_show);
 				cursorMove(x_pos, y_pos);
 				mapShow(map_2, x_pos, y_pos, all_decks_show, true);
-				shooting(map_1, result_shooting_1, h_1, hit, computer_game_mode, mode_shooting_2);
+				shooting(map_1, result_shooting_1, h_1, msg, hit, computer_game_mode, mode_shooting_2);
 				Sleep(1000);
 				game_over = gameOver(result_shooting_1);
 				if (!game_over)
@@ -1196,8 +1216,7 @@ int main()
 	setColor(LIGHT_RED, BLACK);
 	cout << end_game << endl;
 	setColor(WHITE, BLACK);
-	//UnregisterHotKey(0, 1);
-	//UnregisterHotKey(0, 2);
+	unregisterHotKeyInGame();
 
 	return 0;
 }
