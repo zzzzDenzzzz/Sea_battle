@@ -1180,27 +1180,27 @@ void readFileSetting(bool &game_mode, bool &computer_game_mode, ifstream &fin)
 	fin.close();
 }
 
-void saveInFileDataGame(Hit &h_1, Hit &h_2, int result_shooting_1[N], int result_shooting_2[N], bool &hit, bool &mode_shooting_1, bool &mode_shooting_2, int &move, ofstream &fout)
+void saveInFileData(Hit &h_1, Hit &h_2, int result_shooting_1[N], int result_shooting_2[N], bool &hit, bool &mode_shooting_1, bool &mode_shooting_2, int &move, ofstream &fout)
 {
 	fout.open(PATH_DATA);
-	fout << h_1.key << h_1.x << h_1.y << h_2.key << h_2.x << h_2.y << endl;
+	fout << h_1.key << h_1.x << h_1.y << h_2.key << h_2.x << h_2.y << "\n";
 	for (int i = 0; i < N; i++)
 	{
 		fout << result_shooting_1[i];
 	}
-	fout << endl;
+	fout << "\n";
 	for (int i = 0; i < N; i++)
 	{
 		fout << result_shooting_2[i];
 	}
-	fout << endl;
-	fout << hit << endl;
-	fout << mode_shooting_1 << mode_shooting_2 << endl;
+	fout << "\n";
+	fout << hit << "\n";
+	fout << mode_shooting_1 << mode_shooting_2 << "\n";
 	fout << move;
 	fout.close();
 }
 
-void readFileDataGame(Hit &h_1, Hit &h_2, int result_shooting_1[N], int result_shooting_2[N], bool &hit, bool &mode_shooting_1, bool &mode_shooting_2, int &move, ifstream &fin)
+void readFileData(Hit &h_1, Hit &h_2, int result_shooting_1[N], int result_shooting_2[N], bool &hit, bool &mode_shooting_1, bool &mode_shooting_2, int &move, ifstream &fin)
 {
 	fin.open(PATH_DATA);
 	fin >> h_1.key >> h_1.x >> h_1.y >> h_2.key >> h_2.x >> h_2.y;
@@ -1294,7 +1294,7 @@ int main()
 	{
 		readFileSetting(game_mode, computer_game_mode, fin);
 		readFileMap(map_1, map_2, fin);
-		readFileDataGame(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fin);
+		readFileData(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fin);
 		_move = true;
 	}
 
@@ -1314,10 +1314,10 @@ int main()
 				mapShow(map_2, X_POS, y_pos, all_decks_show, true);
 				saveInFileMap(map_1, map_2, fout);
 				shooting(map_2, result_shooting_2, h_2, msg, hit, computer_game_mode, mode_shooting_1, false);
-				move = 1;
+				move = 2;
 				_move = false;
 				saveInFileMap(map_1, map_2, fout);
-				saveInFileDataGame(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
+				saveInFileData(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
 				game_over = gameOver(result_shooting_2);
 				if (!game_over)
 				{
@@ -1338,10 +1338,10 @@ int main()
 				mapShow(map_2, X_POS, y_pos, all_decks_show, true);
 				saveInFileMap(map_1, map_2, fout);
 				shooting(map_1, result_shooting_1, h_1, msg, hit, computer_game_mode, mode_shooting_2);
-				move = 2;
+				move = 1;
 				_move = false;
 				saveInFileMap(map_1, map_2, fout);
-				saveInFileDataGame(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
+				saveInFileData(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
 				game_over = gameOver(result_shooting_1);
 				if (!game_over)
 				{
@@ -1373,7 +1373,7 @@ int main()
 				saveInFileMap(map_1, map_2, fout);
 				shooting(map_2, result_shooting_2, h_2, msg, hit, computer_game_mode, mode_shooting_1);
 				saveInFileMap(map_1, map_2, fout);
-				saveInFileDataGame(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
+				saveInFileData(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
 				Sleep(1000);
 				game_over = gameOver(result_shooting_2);
 				if (!game_over)
@@ -1398,7 +1398,7 @@ int main()
 				saveInFileMap(map_1, map_2, fout);
 				shooting(map_1, result_shooting_1, h_1, msg, hit, computer_game_mode, mode_shooting_2);
 				saveInFileMap(map_1, map_2, fout);
-				saveInFileDataGame(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
+				saveInFileData(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
 				Sleep(1000);
 				game_over = gameOver(result_shooting_1);
 				if (!game_over)
@@ -1424,7 +1424,7 @@ int main()
 	setColor(LIGHT_RED, BLACK);
 	cout << end_game << endl;
 	setColor(WHITE, BLACK);
-	fout.open(PATH_MAP, ios::binary);
+	fout.open(PATH_MAP);
 	fout.clear();
 	fout.close();
 	unregisterHotKeyInGame();
