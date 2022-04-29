@@ -13,6 +13,9 @@ const char SPACE = ' ';
 const char E_BUTTON = 'E';
 const char P_BUTTON = 'P';
 const char S_BUTTON = 'S';
+const string PATH_MAP = "map.txt";
+const string PATH_SETTING = "setting.txt";
+const string PATH_DATA = "data.txt";
 const string DECK = "D";
 const string HIT = "X";
 const string MISS = "@";
@@ -57,18 +60,58 @@ struct Hit
 	bool key = false;
 };
 
-void setColor(unsigned foreground, unsigned background)
-{
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, (WORD)((background << 4) | foreground));
-}
-
 void clearKeyboardBuffer()
 {
 	while (_kbhit())
 	{
 		_getch();
 	}
+}
+
+void errorInput()
+{
+	cout << "\n\nОшибка ввода. Попробуйте еще раз\n\n";
+	Sleep(1000);
+	system("cls");
+}
+
+void setColor(unsigned foreground, unsigned background)
+{
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, (WORD)((background << 4) | foreground));
+}
+
+void startMessage(ofstream &fout)
+{
+	bool exit_cicle = true;
+	char ch;
+	while (exit_cicle)
+	{
+		cout << "1 - продолжить\n";
+		cout << "2 - начать новую игру\n";
+		cout << "\n>>>";
+
+		ch = _getch();
+		switch (ch)
+		{
+		case '1':
+			exit_cicle = false;
+			clearKeyboardBuffer();
+			break;
+		case '2':
+			exit_cicle = false;
+			fout.open(PATH_MAP);
+			fout.clear();
+			fout.close();
+			clearKeyboardBuffer();
+			break;
+		default:
+			errorInput();
+			break;
+		}
+	}
+	clearKeyboardBuffer();
+	system("cls");
 }
 
 void saveExitMessage()
@@ -88,9 +131,9 @@ void registerHotKeyInGame()
 
 void unregisterHotKeyInGame()
 {
-	UnregisterHotKey(0, 1);
-	UnregisterHotKey(0, 2);
-	UnregisterHotKey(0, 3);
+	UnregisterHotKey(0, EXIT);
+	UnregisterHotKey(0, PAUSE);
+	UnregisterHotKey(0, SAVE_AND_EXIT);
 }
 
 void _msg(MSG &msg)
@@ -106,6 +149,10 @@ void _msg(MSG &msg)
 				cout << "Завершение работы программы...\n";
 				Sleep(3000);
 				system("cls");
+				ofstream fout;
+				fout.open(PATH_MAP);
+				fout.clear();
+				fout.close();
 				_exit(0);
 			}
 			else if (msg.wParam == PAUSE)
@@ -116,18 +163,14 @@ void _msg(MSG &msg)
 			}
 			else if (msg.wParam == SAVE_AND_EXIT)
 			{
-				cout << "save_and_exit\n";
-				system("pause");
+				setColor(WHITE, BLACK);
+				cout << "Сохранение данных и завершение работы программы...\n";
+				Sleep(3000);
+				system("cls");
+				_exit(0);
 			}
 		}
 	}
-}
-
-void errorInput()
-{
-	cout << "\n\nОшибка ввода. Попробуйте еще раз\n\n";
-	Sleep(1000);
-	system("cls");
 }
 
 void gameMode(bool &game_mode)
@@ -1063,9 +1106,9 @@ bool gameOver(int result_shuting[N])
 	return false;
 }
 
-void file(int map_1[N][N], int map_2[N][N], ofstream &fout)
+void saveInFileMap(int map_1[N][N], int map_2[N][N], ofstream &fout)
 {
-	fout.open("map.txt", ios::binary);
+	fout.open(PATH_MAP, ios::binary);
 	for (int i = 0; i < N; i++)
 	{
 		for (int j = 0; j < N; j++)
@@ -1085,11 +1128,101 @@ void file(int map_1[N][N], int map_2[N][N], ofstream &fout)
 		fout << "\n";
 	}
 	fout.close();
-	//system("pause");
+}
+
+void readFileMap(int map_1[N][N], int map_2[N][N], ifstream &fin)
+{
+	fin.open(PATH_MAP, ios::binary);
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			fin >> setw(2) >> map_1[j][i];
+		}
+	}
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			fin >> setw(2) >> map_2[j][i];
+		}
+	}
+	fin.close();
+}
+
+bool isEmptyFileMap(ifstream &fin)
+{
+	bool file_empty = false;
+	long file_size;
+	fin.open(PATH_MAP);
+	fin.seekg(0, ios::end);
+	file_size = fin.tellg();
+	if (file_size == 0)
+	{
+		file_empty = true;
+	}
+	fin.close();
+	return file_empty;
+}
+
+void saveInFileSetting(bool &game_mode, bool &computer_game_mode, ofstream &fout)
+{
+	fout.open(PATH_SETTING);
+	fout << game_mode << computer_game_mode;
+	fout.close();
+}
+
+void readFileSetting(bool &game_mode, bool &computer_game_mode, ifstream &fin)
+{
+	fin.open(PATH_SETTING);
+	fin >> game_mode >> computer_game_mode;
+	fin.close();
+}
+
+void saveInFileDataGame(Hit &h_1, Hit &h_2, int result_shooting_1[N], int result_shooting_2[N], bool &hit, bool &mode_shooting_1, bool &mode_shooting_2, int &move, ofstream &fout)
+{
+	fout.open(PATH_DATA);
+	fout << h_1.key << h_1.x << h_1.y << h_2.key << h_2.x << h_2.y << endl;
+	for (int i = 0; i < N; i++)
+	{
+		fout << result_shooting_1[i];
+	}
+	fout << endl;
+	for (int i = 0; i < N; i++)
+	{
+		fout << result_shooting_2[i];
+	}
+	fout << endl;
+	fout << hit << endl;
+	fout << mode_shooting_1 << mode_shooting_2 << endl;
+	fout << move;
+	fout.close();
+}
+
+void readFileDataGame(Hit &h_1, Hit &h_2, int result_shooting_1[N], int result_shooting_2[N], bool &hit, bool &mode_shooting_1, bool &mode_shooting_2, int &move, ifstream &fin)
+{
+	fin.open(PATH_DATA);
+	fin >> h_1.key >> h_1.x >> h_1.y >> h_2.key >> h_2.x >> h_2.y;
+	for (int i = 0; i < N; i++)
+	{
+		fin >> result_shooting_1[i];
+	}
+	for (int i = 0; i < N; i++)
+	{
+		fin >> result_shooting_2[i];
+	}
+	fin >> hit;
+	fin >> mode_shooting_1 >> mode_shooting_2;
+	fin >> move;
+	fin.close();
 }
 
 int main()
 {
+	ofstream fout;
+	ifstream fin;
+
 	bool game_mode{ true };          // режимы игры: человек - компьютер(true), компьютер - компьютер(false)
 	bool placement_of_ships{ true }; // расстановка кораблей: вручную(true), компьютер расставляет за игрока(false)
 	bool computer_game_mode{ true }; // режим игры компьютера: случайный выстрел(true), интеллектуальная игра(false)
@@ -1097,11 +1230,6 @@ int main()
 	srand((unsigned int)time(NULL));
 	SetConsoleOutputCP(1251);
 	registerHotKeyInGame();
-	setColor(LIGHT_GRAY, BLACK);
-	gameMode(game_mode);
-	placementOfShips(placement_of_ships);
-	computerGameMode(computer_game_mode);
-	settingGameModes(game_mode, placement_of_ships, computer_game_mode);
 
 	int map_1[N][N]{};
 	int map_2[N][N]{};
@@ -1112,28 +1240,6 @@ int main()
 	int size_ship{ ships[0] };
 	int ships_id{ 1 };
 	bool all_decks_show{ false };
-	
-	if (placement_of_ships)
-	{
-		setManualShips(map_1, dir, x, y, size_ship, ships, y_pos, ships_id, all_decks_show);
-		ships_id = 1;
-		for (int i = 0; i < N; i++)
-		{
-			setRandomShips(map_2, ships[i], ships_id + i);
-		}
-	}
-	else
-	{
-		for (int i = 0; i < N; i++)
-		{
-			setRandomShips(map_1, ships[i], ships_id + i);
-		}
-		ships_id = 1;
-		for (int i = 0; i < N; i++)
-		{
-			setRandomShips(map_2, ships[i], ships_id + i);
-		}
-	}
 
 	MSG msg;
 	Hit h_1{ 0, 0 };
@@ -1145,8 +1251,52 @@ int main()
 	bool hit{ true };
 	bool mode_shooting_1{ false };
 	bool mode_shooting_2{ false };
+	int move{};
+	bool _move{ false };
 
-	ofstream fout;
+	if (!isEmptyFileMap(fin))
+	{
+		setColor(LIGHT_GRAY, BLACK);
+		startMessage(fout);
+	}
+
+	if (isEmptyFileMap(fin))
+	{
+		setColor(LIGHT_GRAY, BLACK);
+		gameMode(game_mode);
+		placementOfShips(placement_of_ships);
+		computerGameMode(computer_game_mode);
+		settingGameModes(game_mode, placement_of_ships, computer_game_mode);
+		saveInFileSetting(game_mode, computer_game_mode, fout);
+		if (placement_of_ships)
+		{
+			setManualShips(map_1, dir, x, y, size_ship, ships, y_pos, ships_id, all_decks_show);
+			ships_id = 1;
+			for (int i = 0; i < N; i++)
+			{
+				setRandomShips(map_2, ships[i], ships_id + i);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < N; i++)
+			{
+				setRandomShips(map_1, ships[i], ships_id + i);
+			}
+			ships_id = 1;
+			for (int i = 0; i < N; i++)
+			{
+				setRandomShips(map_2, ships[i], ships_id + i);
+			}
+		}
+	}
+	else
+	{
+		readFileSetting(game_mode, computer_game_mode, fin);
+		readFileMap(map_1, map_2, fin);
+		readFileDataGame(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fin);
+		_move = true;
+	}
 
 	while (game_over)
 	{
@@ -1154,11 +1304,20 @@ int main()
 		{
 			do
 			{
+				if (move == 2 && _move == true)
+				{
+					system("pause");
+					break;
+				}
 				mapShow(map_1, X_POS, y_pos, all_decks_show);
 				cursorMove(X_POS, y_pos);
 				mapShow(map_2, X_POS, y_pos, all_decks_show, true);
+				saveInFileMap(map_1, map_2, fout);
 				shooting(map_2, result_shooting_2, h_2, msg, hit, computer_game_mode, mode_shooting_1, false);
-				file(map_1, map_2, fout);
+				move = 1;
+				_move = false;
+				saveInFileMap(map_1, map_2, fout);
+				saveInFileDataGame(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
 				game_over = gameOver(result_shooting_2);
 				if (!game_over)
 				{
@@ -1177,8 +1336,12 @@ int main()
 				mapShow(map_1, X_POS, y_pos, all_decks_show);
 				cursorMove(X_POS, y_pos);
 				mapShow(map_2, X_POS, y_pos, all_decks_show, true);
+				saveInFileMap(map_1, map_2, fout);
 				shooting(map_1, result_shooting_1, h_1, msg, hit, computer_game_mode, mode_shooting_2);
-				file(map_1, map_2, fout);
+				move = 2;
+				_move = false;
+				saveInFileMap(map_1, map_2, fout);
+				saveInFileDataGame(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
 				game_over = gameOver(result_shooting_1);
 				if (!game_over)
 				{
@@ -1198,10 +1361,19 @@ int main()
 		{
 			do
 			{
+				if (move == 2 && _move == true)
+				{
+					break;
+				}
+				move = 1;
+				_move = false;
 				mapShow(map_1, X_POS, y_pos, all_decks_show);
 				cursorMove(X_POS, y_pos);
 				mapShow(map_2, X_POS, y_pos, all_decks_show, true);
+				saveInFileMap(map_1, map_2, fout);
 				shooting(map_2, result_shooting_2, h_2, msg, hit, computer_game_mode, mode_shooting_1);
+				saveInFileMap(map_1, map_2, fout);
+				saveInFileDataGame(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
 				Sleep(1000);
 				game_over = gameOver(result_shooting_2);
 				if (!game_over)
@@ -1218,10 +1390,15 @@ int main()
 			}
 			do
 			{
+				move = 2;
+				_move = false;
 				mapShow(map_1, X_POS, y_pos, all_decks_show);
 				cursorMove(X_POS, y_pos);
 				mapShow(map_2, X_POS, y_pos, all_decks_show, true);
+				saveInFileMap(map_1, map_2, fout);
 				shooting(map_1, result_shooting_1, h_1, msg, hit, computer_game_mode, mode_shooting_2);
+				saveInFileMap(map_1, map_2, fout);
+				saveInFileDataGame(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
 				Sleep(1000);
 				game_over = gameOver(result_shooting_1);
 				if (!game_over)
@@ -1247,6 +1424,9 @@ int main()
 	setColor(LIGHT_RED, BLACK);
 	cout << end_game << endl;
 	setColor(WHITE, BLACK);
+	fout.open(PATH_MAP, ios::binary);
+	fout.clear();
+	fout.close();
 	unregisterHotKeyInGame();
 
 	return 0;
