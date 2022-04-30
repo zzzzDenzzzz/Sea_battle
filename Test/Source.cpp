@@ -87,7 +87,7 @@ void startMessage(ofstream &fout)
 	char ch;
 	while (exit_cicle)
 	{
-		cout << "1 - продолжить\n";
+		cout << "1 - продолжить игру\n";
 		cout << "2 - начать новую игру\n";
 		cout << "\n>>>";
 
@@ -100,7 +100,7 @@ void startMessage(ofstream &fout)
 			break;
 		case '2':
 			exit_cicle = false;
-			fout.open(PATH_MAP);
+			fout.open(PATH_MAP, ios::out);
 			fout.clear();
 			fout.close();
 			clearKeyboardBuffer();
@@ -150,7 +150,7 @@ void _msg(MSG &msg)
 				Sleep(3000);
 				system("cls");
 				ofstream fout;
-				fout.open(PATH_MAP, ios_base::out);
+				fout.open(PATH_MAP, ios::out);
 				fout.clear();
 				fout.close();
 				_exit(0);
@@ -1108,31 +1108,31 @@ bool gameOver(int result_shuting[N])
 
 void saveInFileMap(int map_1[N][N], int map_2[N][N], ofstream &fout)
 {
-	fout.open(PATH_MAP, ios_base::out);
+	fout.open(PATH_MAP, ios::out);
 	for (int i = 0; i < N; i++)
 	{
 		for (int j = 0; j < N; j++)
 		{
 			fout << setw(2) << map_1[j][i] << " ";
 		}
-		fout << "\n";
+		fout << endl;
 	}
 
-	fout << "\n";
+	fout << endl;
 	for (int i = 0; i < N; i++)
 	{
 		for (int j = 0; j < N; j++)
 		{
 			fout << setw(2) << map_2[j][i] << " ";
 		}
-		fout << "\n";
+		fout << endl;
 	}
 	fout.close();
 }
 
 void readFileMap(int map_1[N][N], int map_2[N][N], ifstream &fin)
 {
-	fin.open(PATH_MAP, ios_base::in);
+	fin.open(PATH_MAP, ios::in);
 	for (int i = 0; i < N; i++)
 	{
 		for (int j = 0; j < N; j++)
@@ -1155,8 +1155,8 @@ bool isEmptyFileMap(ifstream &fin)
 {
 	bool file_empty = false;
 	long file_size;
-	fin.open(PATH_MAP, ios_base::in);
-	fin.seekg(0, ios_base::end);
+	fin.open(PATH_MAP, ios::in);
+	fin.seekg(0, ios::end);
 	file_size = fin.tellg();
 	if (file_size == 0)
 	{
@@ -1168,54 +1168,81 @@ bool isEmptyFileMap(ifstream &fin)
 
 void saveInFileSetting(bool &game_mode, bool &computer_game_mode, ofstream &fout)
 {
-	fout.open(PATH_SETTING, ios_base::out);
+	fout.open(PATH_SETTING, ios::out);
 	fout << game_mode << computer_game_mode;
 	fout.close();
 }
 
 void readFileSetting(bool &game_mode, bool &computer_game_mode, ifstream &fin)
 {
-	fin.open(PATH_SETTING, ios_base::in);
-	fin >> game_mode >> computer_game_mode;
+	char *ar = new char[2];
+	int *arr = new int[30];
+	fin.open(PATH_SETTING, ios::in);
+	for (int i = 0; i < 2; i++)
+	{
+		fin >> ar[i];
+		arr[i] = (int)ar[i] - '0';
+	}
 	fin.close();
+	int i = 0;
+	game_mode = (bool)arr[i++];
+	computer_game_mode = (bool)arr[i];
+
+	delete[]ar;
+	delete[]arr;
 }
 
 void saveInFileData(Hit &h_1, Hit &h_2, int result_shooting_1[N], int result_shooting_2[N], bool &hit, bool &mode_shooting_1, bool &mode_shooting_2, int &move, ofstream &fout)
 {
-	fout.open(PATH_DATA, ios_base::out);
-	fout << h_1.key << h_1.x << h_1.y << h_2.key << h_2.x << h_2.y << "\n";
+	fout.open(PATH_DATA, ios::out);
+	fout << h_1.key << h_1.x << h_1.y << h_2.key << h_2.x << h_2.y;
 	for (int i = 0; i < N; i++)
 	{
 		fout << result_shooting_1[i];
 	}
-	fout << "\n";
 	for (int i = 0; i < N; i++)
 	{
 		fout << result_shooting_2[i];
 	}
-	fout << "\n";
-	fout << hit << "\n";
-	fout << mode_shooting_1 << mode_shooting_2 << "\n";
+	fout << hit;
+	fout << mode_shooting_1 << mode_shooting_2;
 	fout << move;
 	fout.close();
 }
 
 void readFileData(Hit &h_1, Hit &h_2, int result_shooting_1[N], int result_shooting_2[N], bool &hit, bool &mode_shooting_1, bool &mode_shooting_2, int &move, ifstream &fin)
 {
-	fin.open(PATH_DATA, ios_base::in);
-	fin >> h_1.key >> h_1.x >> h_1.y >> h_2.key >> h_2.x >> h_2.y;
-	for (int i = 0; i < N; i++)
+	char *ar = new char[30];
+	int *arr = new int[30];
+	fin.open(PATH_DATA, ios::in);
+	for (int i = 0; i < 30; i++)
 	{
-		fin >> result_shooting_1[i];
+		fin >> ar[i];
+		arr[i] = (int)ar[i] - '0';
 	}
-	for (int i = 0; i < N; i++)
-	{
-		fin >> result_shooting_2[i];
-	}
-	fin >> hit;
-	fin >> mode_shooting_1 >> mode_shooting_2;
-	fin >> move;
 	fin.close();
+	int i = 0;
+	h_1.key = (bool)arr[i++];
+	h_1.x = arr[i++];
+	h_1.y = arr[i++];
+	h_2.key = (bool)arr[i++];
+	h_2.x = arr[i++];
+	h_2.y = arr[i++];
+	for (int j = 0; j < N; i++, j++)
+	{
+		result_shooting_1[j] = arr[i];
+	}
+	for (int j = 0; j < N; i++, j++)
+	{
+		result_shooting_2[j] = arr[i];
+	}
+	hit = (bool)arr[i++];
+	mode_shooting_1 = (bool)arr[i++];
+	mode_shooting_2 = (bool)arr[i++];
+	move = arr[i];
+
+	delete[]ar;
+	delete[]arr;
 }
 
 int main()
@@ -1306,16 +1333,22 @@ int main()
 			{
 				if (move == 2 && _move == true)
 				{
-					system("pause");
 					break;
 				}
+				_move = false;
 				mapShow(map_1, X_POS, y_pos, all_decks_show);
 				cursorMove(X_POS, y_pos);
 				mapShow(map_2, X_POS, y_pos, all_decks_show, true);
 				saveInFileMap(map_1, map_2, fout);
 				shooting(map_2, result_shooting_2, h_2, msg, hit, computer_game_mode, mode_shooting_1, false);
-				move = 2;
-				_move = false;
+				if (hit)
+				{
+					move = 1;
+				}
+				else
+				{
+					move = 2;
+				}
 				saveInFileMap(map_1, map_2, fout);
 				saveInFileData(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
 				game_over = gameOver(result_shooting_2);
@@ -1333,13 +1366,20 @@ int main()
 			}
 			do
 			{
+				_move = false;
 				mapShow(map_1, X_POS, y_pos, all_decks_show);
 				cursorMove(X_POS, y_pos);
 				mapShow(map_2, X_POS, y_pos, all_decks_show, true);
 				saveInFileMap(map_1, map_2, fout);
 				shooting(map_1, result_shooting_1, h_1, msg, hit, computer_game_mode, mode_shooting_2);
-				move = 1;
-				_move = false;
+				if (hit)
+				{
+					move = 2;
+				}
+				else
+				{
+					move = 1;
+				}
 				saveInFileMap(map_1, map_2, fout);
 				saveInFileData(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
 				game_over = gameOver(result_shooting_1);
@@ -1365,13 +1405,20 @@ int main()
 				{
 					break;
 				}
-				move = 1;
 				_move = false;
 				mapShow(map_1, X_POS, y_pos, all_decks_show);
 				cursorMove(X_POS, y_pos);
 				mapShow(map_2, X_POS, y_pos, all_decks_show, true);
 				saveInFileMap(map_1, map_2, fout);
 				shooting(map_2, result_shooting_2, h_2, msg, hit, computer_game_mode, mode_shooting_1);
+				if (hit)
+				{
+					move = 1;
+				}
+				else
+				{
+					move = 2;
+				}
 				saveInFileMap(map_1, map_2, fout);
 				saveInFileData(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
 				Sleep(1000);
@@ -1390,13 +1437,20 @@ int main()
 			}
 			do
 			{
-				move = 2;
 				_move = false;
 				mapShow(map_1, X_POS, y_pos, all_decks_show);
 				cursorMove(X_POS, y_pos);
 				mapShow(map_2, X_POS, y_pos, all_decks_show, true);
 				saveInFileMap(map_1, map_2, fout);
 				shooting(map_1, result_shooting_1, h_1, msg, hit, computer_game_mode, mode_shooting_2);
+				if (hit)
+				{
+					move = 2;
+				}
+				else
+				{
+					move = 1;
+				}
 				saveInFileMap(map_1, map_2, fout);
 				saveInFileData(h_1, h_2, result_shooting_1, result_shooting_2, hit, mode_shooting_1, mode_shooting_2, move, fout);
 				Sleep(1000);
@@ -1424,7 +1478,7 @@ int main()
 	setColor(LIGHT_RED, BLACK);
 	cout << end_game << endl;
 	setColor(WHITE, BLACK);
-	fout.open(PATH_MAP, ios_base::out);
+	fout.open(PATH_MAP, ios::out);
 	fout.clear();
 	fout.close();
 	unregisterHotKeyInGame();
