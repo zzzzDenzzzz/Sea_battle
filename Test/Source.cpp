@@ -150,7 +150,7 @@ void _msg(MSG &msg)
 				Sleep(3000);
 				system("cls");
 				ofstream fout;
-				fout.open(PATH_MAP);
+				fout.open(PATH_MAP, ios_base::out);
 				fout.clear();
 				fout.close();
 				_exit(0);
@@ -1108,7 +1108,7 @@ bool gameOver(int result_shuting[N])
 
 void saveInFileMap(int map_1[N][N], int map_2[N][N], ofstream &fout)
 {
-	fout.open(PATH_MAP, ios::binary);
+	fout.open(PATH_MAP, ios_base::out);
 	for (int i = 0; i < N; i++)
 	{
 		for (int j = 0; j < N; j++)
@@ -1132,7 +1132,7 @@ void saveInFileMap(int map_1[N][N], int map_2[N][N], ofstream &fout)
 
 void readFileMap(int map_1[N][N], int map_2[N][N], ifstream &fin)
 {
-	fin.open(PATH_MAP, ios::binary);
+	fin.open(PATH_MAP, ios_base::in);
 	for (int i = 0; i < N; i++)
 	{
 		for (int j = 0; j < N; j++)
@@ -1155,8 +1155,8 @@ bool isEmptyFileMap(ifstream &fin)
 {
 	bool file_empty = false;
 	long file_size;
-	fin.open(PATH_MAP);
-	fin.seekg(0, ios::end);
+	fin.open(PATH_MAP, ios_base::in);
+	fin.seekg(0, ios_base::end);
 	file_size = fin.tellg();
 	if (file_size == 0)
 	{
@@ -1168,21 +1168,21 @@ bool isEmptyFileMap(ifstream &fin)
 
 void saveInFileSetting(bool &game_mode, bool &computer_game_mode, ofstream &fout)
 {
-	fout.open(PATH_SETTING);
+	fout.open(PATH_SETTING, ios_base::out);
 	fout << game_mode << computer_game_mode;
 	fout.close();
 }
 
 void readFileSetting(bool &game_mode, bool &computer_game_mode, ifstream &fin)
 {
-	fin.open(PATH_SETTING);
+	fin.open(PATH_SETTING, ios_base::in);
 	fin >> game_mode >> computer_game_mode;
 	fin.close();
 }
 
 void saveInFileData(Hit &h_1, Hit &h_2, int result_shooting_1[N], int result_shooting_2[N], bool &hit, bool &mode_shooting_1, bool &mode_shooting_2, int &move, ofstream &fout)
 {
-	fout.open(PATH_DATA);
+	fout.open(PATH_DATA, ios_base::out);
 	fout << h_1.key << h_1.x << h_1.y << h_2.key << h_2.x << h_2.y << "\n";
 	for (int i = 0; i < N; i++)
 	{
@@ -1202,7 +1202,7 @@ void saveInFileData(Hit &h_1, Hit &h_2, int result_shooting_1[N], int result_sho
 
 void readFileData(Hit &h_1, Hit &h_2, int result_shooting_1[N], int result_shooting_2[N], bool &hit, bool &mode_shooting_1, bool &mode_shooting_2, int &move, ifstream &fin)
 {
-	fin.open(PATH_DATA);
+	fin.open(PATH_DATA, ios_base::in);
 	fin >> h_1.key >> h_1.x >> h_1.y >> h_2.key >> h_2.x >> h_2.y;
 	for (int i = 0; i < N; i++)
 	{
@@ -1424,7 +1424,7 @@ int main()
 	setColor(LIGHT_RED, BLACK);
 	cout << end_game << endl;
 	setColor(WHITE, BLACK);
-	fout.open(PATH_MAP);
+	fout.open(PATH_MAP, ios_base::out);
 	fout.clear();
 	fout.close();
 	unregisterHotKeyInGame();
